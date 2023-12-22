@@ -74,6 +74,8 @@ internal partial class MainWindow
         UpdateEnabled();
 
         RecalculateProgress();
+
+        Title = $"Code Marker - {Path.GetFileNameWithoutExtension(projectFileName)}";
     }
 
     private void LoadTreeView()
@@ -146,12 +148,14 @@ internal partial class MainWindow
 
         _project = null;
 
-        _files.Items.Clear();
+        _files.ItemsSource = null;
         _file = null;
 
         UpdateEnabled();
 
-        _progress.Content = null;
+        _progress.Content = "";
+
+        Title = "Code Marker";
     }
 
     private void _closeProject_Click(object sender, RoutedEventArgs e) => CloseProject();

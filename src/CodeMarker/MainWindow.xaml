@@ -10,6 +10,7 @@
     xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
     mc:Ignorable="d"
     Title="Code Marker"
+    ShowInTaskbar="True"
     Height="450"
     Width="800"
     Loaded="BaseWindow_Loaded">
@@ -22,45 +23,70 @@
         <ToolBar>
             <ToolBar.Resources>
                 <Style TargetType="StackPanel">
-                    <Setter Property="Orientation" Value="Horizontal"/>
+                    <Setter
+                        Property="Orientation"
+                        Value="Horizontal" />
                 </Style>
                 <Style TargetType="Image">
-                    <Setter Property="Height" Value="16"/>
-                    <Setter Property="Width" Value="16"/>
+                    <Setter
+                        Property="Height"
+                        Value="16" />
+                    <Setter
+                        Property="Width"
+                        Value="16" />
                 </Style>
-                <Style x:Key="ImageWithText" TargetType="Image">
-                    <Setter Property="Margin" Value="0,0,5,0"/>
-                    <Setter Property="Height" Value="16"/>
-                    <Setter Property="Width" Value="16"/>
+                <Style
+                    x:Key="ImageWithText"
+                    TargetType="Image">
+                    <Setter
+                        Property="Margin"
+                        Value="0,0,5,0" />
+                    <Setter
+                        Property="Height"
+                        Value="16" />
+                    <Setter
+                        Property="Width"
+                        Value="16" />
                 </Style>
             </ToolBar.Resources>
             <Button
                 x:Name="_openProject"
                 Click="_openProject_Click">
                 <StackPanel>
-                    <Image x:Name="_openProjectImage" Style="{StaticResource ImageWithText}"/>
+                    <Image
+                        x:Name="_openProjectImage"
+                        Style="{StaticResource ImageWithText}" />
                     <TextBlock>Open Project</TextBlock>
                 </StackPanel>
             </Button>
             <Button
-                x:Name="_closeProject" Click="_closeProject_Click">
+                x:Name="_closeProject"
+                Click="_closeProject_Click">
                 <StackPanel>
-                    <Image x:Name="_closeProjectImage" Style="{StaticResource ImageWithText}"/>
+                    <Image
+                        x:Name="_closeProjectImage"
+                        Style="{StaticResource ImageWithText}" />
                     <TextBlock>Close Project</TextBlock>
                 </StackPanel>
             </Button>
             <Separator />
-            <Button x:Name="_markGreen" Click="_markGreen_Click">
-                <Image x:Name="_markGreenImage"/>
+            <Button
+                x:Name="_markGreen"
+                Click="_markGreen_Click">
+                <Image x:Name="_markGreenImage" />
             </Button>
-            <Button x:Name="_markYellow" Click="_markYellow_Click">
-                <Image x:Name="_markYellowImage"/>
+            <Button
+                x:Name="_markYellow"
+                Click="_markYellow_Click">
+                <Image x:Name="_markYellowImage" />
             </Button>
-            <Button x:Name="_markRed" Click="_markRed_Click">
-                <Image x:Name="_markRedImage"/>
+            <Button
+                x:Name="_markRed"
+                Click="_markRed_Click">
+                <Image x:Name="_markRedImage" />
             </Button>
-            <Separator/>
-            <Label x:Name="_progress"/>
+            <Separator />
+            <Label x:Name="_progress" />
         </ToolBar>
 
         <Grid
@@ -71,13 +97,19 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <TreeView x:Name="_files"
-                      SelectedItemChanged="_files_SelectedItemChanged">
+            <TreeView
+                x:Name="_files"
+                SelectedItemChanged="_files_SelectedItemChanged">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
-                            <Image Source="{Binding Icon}" Width="16" Height="16"/>
-                            <TextBlock Text="{Binding Name}" Margin="5,0,0,0"/>
+                            <Image
+                                Source="{Binding Icon}"
+                                Width="16"
+                                Height="16" />
+                            <TextBlock
+                                Text="{Binding Name}"
+                                Margin="5,0,0,0" />
                         </StackPanel>
                     </HierarchicalDataTemplate>
                 </TreeView.ItemTemplate>
@@ -86,17 +118,15 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Stretch"
                 ShowsPreview="True"
-                Width="5" 
-                Grid.Column="1"
-                />
+                Width="5"
+                Grid.Column="1" />
             <avalonEdit:TextEditor
                 Name="_editor"
                 FontFamily="Cascadia Mono"
                 SyntaxHighlighting="C#"
                 FontSize="10pt"
                 Grid.Column="2"
-                PreviewKeyDown="_editor_PreviewKeyDown"
-                />
+                PreviewKeyDown="_editor_PreviewKeyDown" />
         </Grid>
     </Grid>
 </support:BaseWindow>
