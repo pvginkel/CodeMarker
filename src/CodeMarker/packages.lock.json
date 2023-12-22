@@ -16,6 +16,12 @@
         "dependencies": {
           "AvalonEdit": "6.0.1"
         }
+      },
+      "SharpVectors.Wpf": {
+        "type": "Direct",
+        "requested": "[1.8.2, )",
+        "resolved": "1.8.2",
+        "contentHash": "dIj4fG2oF4vcSEDqepy2IuJkUay8muYF2zqtB2l5FCahwklVHrCEDxReFi6ak3ioFDRRmNJhQz7wpAboU/pG6Q=="
       }
     }
   }
