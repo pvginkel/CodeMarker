@@ -72,6 +72,8 @@ internal partial class MainWindow
         LoadTreeView();
 
         UpdateEnabled();
+
+        RecalculateProgress();
     }
 
     private void LoadTreeView()
@@ -148,6 +150,8 @@ internal partial class MainWindow
         _file = null;
 
         UpdateEnabled();
+
+        _progress.Content = null;
     }
 
     private void _closeProject_Click(object sender, RoutedEventArgs e) => CloseProject();
@@ -238,6 +242,47 @@ internal partial class MainWindow
         }
 
         _editor.TextArea.TextView.Redraw();
+
+        RecalculateProgress();
+    }
+
+    private void RecalculateProgress()
+    {
+        var colorNumbers = new int[3];
+
+        foreach (var node in GetAllNodes().OfType<FileNode>())
+        {
+            foreach (var color in node.Markings.LineColors)
+            {
+                if (color != null)
+                    colorNumbers[color.Priority - 1]++;
+            }
+        }
+
+        var total = colorNumbers.Sum();
+        var green = colorNumbers[MarkColor.Green.Priority - 1];
+
+        var progress = ((double)green / total) * 100;
+
+        _progress.Content = $"Progress {progress:0.0}%";
+    }
+
+    private IEnumerable<Node> GetAllNodes()
+    {
+        var queue = new Queue<IEnumerable<Node>>();
+
+        queue.Enqueue((IEnumerable<Node>)_files.ItemsSource);
+
+        while (queue.TryDequeue(out var nodes))
+        {
+            foreach (var node in nodes)
+            {
+                yield return node;
+
+                if (node is FolderNode folderNode)
+                    queue.Enqueue(folderNode.Children);
+            }
+        }
     }
 
     private void _markGreen_Click(object sender, RoutedEventArgs e) => Mark(MarkColor.Green);

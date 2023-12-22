@@ -59,6 +59,8 @@
             <Button x:Name="_markRed" Click="_markRed_Click">
                 <Image x:Name="_markRedImage"/>
             </Button>
+            <Separator/>
+            <Label x:Name="_progress"/>
         </ToolBar>
 
         <Grid
