@@ -6,9 +6,43 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CodeMarker"
         xmlns:support="clr-namespace:CodeMarker.Support"
+        xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
         mc:Ignorable="d"
         Title="Code Marker" Height="450" Width="800">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <ToolBar>
+            <Button x:Name="_openButton"
+                    Content="Open"/>
+        </ToolBar>
+        
+        <Grid Grid.Row="1"
+              Margin="9">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <TreeView>
+                
+            </TreeView>
+            <GridSplitter
+                Grid.Column="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Stretch"
+                ShowsPreview="True"
+                Width="5"
+                />
+            <avalonEdit:TextEditor
+                Grid.Column="2"
+                Name="_editor"
+                FontFamily="Consolas"
+                SyntaxHighlighting="C#"
+                FontSize="10pt"/>
+        </Grid>
     </Grid>
 </support:BaseWindow>

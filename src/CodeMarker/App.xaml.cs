@@ -1,9 +1,8 @@
 ﻿using CodeMarker.Themes;
-using Microsoft.Win32;
 
 namespace CodeMarker;
 
-public partial class App : Application
+internal partial class App
 {
     private void Application_Startup(object sender, StartupEventArgs e)
     {
@@ -12,12 +11,11 @@ public partial class App : Application
 
     private void SetTheme()
     {
-        using var key = Registry.CurrentUser.OpenSubKey(
-            @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
+        ThemesController.SetTheme(
+            TextEditorUtils.IsLightTheme ? ThemeType.LightTheme : ThemeType.SoftDark
         );
 
-        var isLight = (key?.GetValue("AppsUseLightTheme") as int?) != 0;
-
-        ThemesController.SetTheme(isLight ? ThemeType.LightTheme : ThemeType.SoftDark);
+        if (!TextEditorUtils.IsLightTheme)
+            HL.Manager.ThemedHighlightingManager.Instance.SetCurrentTheme("VS2019_Dark");
     }
 }

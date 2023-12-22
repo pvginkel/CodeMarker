@@ -1,6 +1,22 @@
 {
   "version": 1,
   "dependencies": {
-    "net8.0-windows7.0": {}
+    "net8.0-windows7.0": {
+      "AvalonEdit": {
+        "type": "Direct",
+        "requested": "[6.3.0.90, )",
+        "resolved": "6.3.0.90",
+        "contentHash": "WVTb5MxwGqKdeasd3nG5udlV4t6OpvkFanziwI133K0/QJ5FvZmfzRQgpAjGTJhQfIA8GP7AzKQ3sTY9JOFk8Q=="
+      },
+      "Dirkster.HL": {
+        "type": "Direct",
+        "requested": "[1.0.4, )",
+        "resolved": "1.0.4",
+        "contentHash": "kTWyMvrqBTx2+B4lde2r4ZEmgafi2UX/e/hk+MgUhLDKPBXjP9L1lvvs3CxMdx0jpkarXQv4JAp27nxDuwZVeA==",
+        "dependencies": {
+          "AvalonEdit": "6.0.1"
+        }
+      }
+    }
   }
 }
