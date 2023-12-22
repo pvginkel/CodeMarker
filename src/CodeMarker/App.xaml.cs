@@ -1,11 +1,16 @@
 ﻿using CodeMarker.Themes;
+using CommandLine;
 
 namespace CodeMarker;
 
 internal partial class App
 {
+    internal static Options Options { get; private set; } = new();
+
     private void Application_Startup(object sender, StartupEventArgs e)
     {
+        Parser.Default.ParseArguments<Options>(e.Args).WithParsed(p => Options = p);
+
         SetTheme();
     }
 

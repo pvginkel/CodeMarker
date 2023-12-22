@@ -11,7 +11,8 @@
     mc:Ignorable="d"
     Title="Code Marker"
     Height="450"
-    Width="800">
+    Width="800"
+    Loaded="BaseWindow_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -34,14 +35,15 @@
                 </Style>
             </ToolBar.Resources>
             <Button
-                x:Name="_openProject">
+                x:Name="_openProject"
+                Click="_openProject_Click">
                 <StackPanel>
                     <Image x:Name="_openProjectImage" Style="{StaticResource ImageWithText}"/>
                     <TextBlock>Open Project</TextBlock>
                 </StackPanel>
             </Button>
             <Button
-                x:Name="_closeProject">
+                x:Name="_closeProject" Click="_closeProject_Click">
                 <StackPanel>
                     <Image x:Name="_closeProjectImage" Style="{StaticResource ImageWithText}"/>
                     <TextBlock>Close Project</TextBlock>
@@ -67,7 +69,16 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <TreeView />
+            <TreeView x:Name="_files">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding Icon}" Width="16" Height="16"/>
+                            <TextBlock Text="{Binding Name}" Margin="5,0,0,0"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
             <GridSplitter
                 Grid.Column="1"
                 HorizontalAlignment="Center"

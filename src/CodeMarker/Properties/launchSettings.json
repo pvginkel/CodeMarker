@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CodeMarker": {
+      "commandName": "Project",
+      "commandLineArgs": "--project \"C:\\Projects\\NetIDECodeMarker - CodeMarking\\NetIDECodeMarker.codemarker\""
+    }
+  }
+}

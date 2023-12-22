@@ -52,4 +52,10 @@ internal static class Images
     public static readonly ImageSource MarkRed = GetImage("Mark Red.svg");
     public static readonly ImageSource MarkGreen = GetImage("Mark Green.svg");
     public static readonly ImageSource MarkYellow = GetImage("Mark Yellow.svg");
+    public static readonly ImageSource OverlayRed = GetImage("Overlay Red.svg");
+    public static readonly ImageSource OverlayRedGreen = GetImage("Overlay Red Green.svg");
+    public static readonly ImageSource OverlayRedYellow = GetImage("Overlay Red Yellow.svg");
+    public static readonly ImageSource OverlayYellow = GetImage("Overlay Yellow.svg");
+    public static readonly ImageSource OverlayYellowGreen = GetImage("Overlay Yellow Green.svg");
+    public static readonly ImageSource OverlayGreen = GetImage("Overlay Green.svg");
 }

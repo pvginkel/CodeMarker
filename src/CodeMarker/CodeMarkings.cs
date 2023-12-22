@@ -34,23 +34,20 @@ internal class CodeMarkings
     private Offset[] _fileLines;
     private Offset[] _bufferLines;
 
-    public string FileName { get; private set; }
-    public MarkColor[] LineColors { get; set; }
-    public string Comments { get; set; }
-    public Encoding Encoding { get; private set; }
-    public string LineTermination { get; private set; }
-    public string Text { get; private set; }
-    public MarkColor[] MarkColors { get; private set; }
+    public string FileName { get; }
+    public MarkColor?[] LineColors { get; set; }
+    public string? Comments { get; set; }
+    public Encoding Encoding { get; }
+    public string LineTermination { get; }
+    public string Text { get; }
+    public MarkColor[] MarkColors { get; private set; } = null!;
 
-    public int FileLineCount
-    {
-        get { return _fileLines.Length; }
-    }
+    public int FileLineCount => _fileLines.Length;
 
     private CodeMarkings(
         string fileName,
-        MarkColor[] lineColors,
-        string comments,
+        MarkColor?[] lineColors,
+        string? comments,
         Encoding encoding,
         string lineTermination,
         string text,
@@ -72,110 +69,106 @@ internal class CodeMarkings
 
     public void UpdatePrevalentColor()
     {
-        var colors = LineColors.Distinct().ToArray();
+        var colors = LineColors.Where(p => p != null).Cast<MarkColor>().Distinct().ToArray();
 
         if (colors.Length == 0)
-            MarkColors = new[] { MarkColor.Green };
+            MarkColors = [MarkColor.Green];
         else
             MarkColors = colors;
     }
 
-    public static CodeMarkings FromProjectItem(string fileName)
+    public static CodeMarkings? FromProjectItem(string fileName)
     {
-        if (fileName == null)
-            throw new ArgumentNullException("fileName");
+        using var stream = File.OpenRead(fileName);
 
-        using (var stream = File.OpenRead(fileName))
+        var encoding = DetectEncoding(stream) ?? new UTF8Encoding(false);
+
+        if (DetectIsBinary(stream))
+            return null;
+
+        string lineTermination = DetectLineTermination(stream);
+
+        stream.Position = 0;
+
+        var lines = GetLines(stream, encoding, lineTermination);
+        var textLines = new List<string>();
+        var commentLines = new List<string>();
+        MarkColor? nextColor = null;
+        bool inComments = false;
+        var lineColors = new List<MarkColor?>();
+
+        var bufferLines = new List<Offset>();
+        var fileLines = new List<Offset>();
+
+        int fileLine = 0;
+        int bufferLine = -1;
+        int bufferOffset = 0;
+
+        foreach (var line in lines)
         {
-            var encoding = DetectEncoding(stream) ?? new UTF8Encoding(false);
-
-            if (DetectIsBinary(stream))
-                return null;
-
-            string lineTermination = DetectLineTermination(stream);
-
-            stream.Position = 0;
-
-            var lines = GetLines(stream, encoding, lineTermination);
-            var textLines = new List<string>();
-            var commentLines = new List<string>();
-            MarkColor nextColor = null;
-            bool inComments = false;
-            var lineColors = new List<MarkColor>();
-
-            var bufferLines = new List<Offset>();
-            var fileLines = new List<Offset>();
-
-            int fileLine = 0;
-            int bufferLine = -1;
-            int bufferOffset = 0;
-
-            foreach (var line in lines)
+            if (inComments)
             {
-                if (inComments)
+                commentLines.Add(line.Text);
+
+                fileLines.Add(new Offset(bufferLine, bufferOffset));
+            }
+            else if (line.Text.StartsWith(LineMarking))
+            {
+                string marking = line.Text.Substring(LineMarking.Length);
+
+                if (marking == "COMMENTS")
                 {
-                    commentLines.Add(line.Text);
+                    inComments = true;
 
                     fileLines.Add(new Offset(bufferLine, bufferOffset));
-                }
-                else if (line.Text.StartsWith(LineMarking))
-                {
-                    string marking = line.Text.Substring(LineMarking.Length);
-
-                    if (marking == "COMMENTS")
-                    {
-                        inComments = true;
-
-                        fileLines.Add(new Offset(bufferLine, bufferOffset));
-                    }
-                    else
-                    {
-                        nextColor = MarkColor.GetColor(marking);
-
-                        Debug.Assert(nextColor != null);
-
-                        fileLines.Add(new Offset(bufferLine + 1, bufferOffset));
-                    }
                 }
                 else
                 {
-                    if (String.IsNullOrWhiteSpace(line.Text))
-                        lineColors.Add(null);
-                    else
-                        lineColors.Add(nextColor ?? MarkColor.Red);
+                    nextColor = MarkColor.GetColor(marking);
 
-                    bufferLine++;
+                    Debug.Assert(nextColor != null);
 
-                    nextColor = null;
-                    textLines.Add(line.Text);
-
-                    bufferLines.Add(new Offset(fileLine, line.Offset));
-                    fileLines.Add(new Offset(bufferLine, bufferOffset));
-
-                    bufferOffset += line.Text.Length + Environment.NewLine.Length;
+                    fileLines.Add(new Offset(bufferLine + 1, bufferOffset));
                 }
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(line.Text))
+                    lineColors.Add(null);
+                else
+                    lineColors.Add(nextColor ?? MarkColor.Red);
 
-                fileLine++;
+                bufferLine++;
+
+                nextColor = null;
+                textLines.Add(line.Text);
+
+                bufferLines.Add(new Offset(fileLine, line.Offset));
+                fileLines.Add(new Offset(bufferLine, bufferOffset));
+
+                bufferOffset += line.Text.Length + Environment.NewLine.Length;
             }
 
-            string comments = null;
-
-            if (commentLines.Count > 0)
-                comments = String.Join(Environment.NewLine, commentLines);
-
-            string text = String.Join(Environment.NewLine, textLines);
-
-            return new CodeMarkings(
-                fileName,
-                lineColors.ToArray(),
-                comments,
-                encoding,
-                lineTermination,
-                text,
-                fileLines.ToArray(),
-                bufferLines.ToArray()
-            );
+            fileLine++;
         }
+
+        string? comments = null;
+
+        if (commentLines.Count > 0)
+            comments = string.Join(Environment.NewLine, commentLines);
+
+        string text = string.Join(Environment.NewLine, textLines);
+
+        return new CodeMarkings(
+            fileName,
+            lineColors.ToArray(),
+            comments,
+            encoding,
+            lineTermination,
+            text,
+            fileLines.ToArray(),
+            bufferLines.ToArray()
+        );
     }
 
     public void Save()
@@ -290,7 +283,7 @@ internal class CodeMarkings
         return target[source[index].Line].Index + (position - source[index].Index);
     }
 
-    private static List<Line> GetLines(FileStream stream, Encoding encoding, string lineEnding)
+    private static List<Line> GetLines(Stream stream, Encoding encoding, string lineEnding)
     {
         string content;
 
@@ -362,7 +355,7 @@ internal class CodeMarkings
         return "\r\n";
     }
 
-    private static Encoding DetectEncoding(FileStream stream)
+    private static Encoding? DetectEncoding(FileStream stream)
     {
         if (stream.Length < 2)
             return null;
@@ -422,7 +415,7 @@ internal class CodeMarkings
         return null;
     }
 
-    private static bool DetectIsBinary(FileStream stream)
+    private static bool DetectIsBinary(Stream stream)
     {
         if (stream.Length == 0)
             return false;
@@ -448,53 +441,7 @@ internal class CodeMarkings
         return isBinary;
     }
 
-    [DebuggerDisplay("Line={Line}, Index={Index}")]
-    private struct Offset
-    {
-        private readonly int _line;
-        private readonly int _index;
+    private record struct Offset(int Line, int Index);
 
-        public int Line
-        {
-            get { return _line; }
-        }
-
-        public int Index
-        {
-            get { return _index; }
-        }
-
-        public Offset(int line, int index)
-        {
-            _line = line;
-            _index = index;
-        }
-    }
-
-    private struct Line
-    {
-        private readonly string _text;
-        private readonly int _offset;
-
-        public string Text
-        {
-            get { return _text; }
-        }
-
-        public int Offset
-        {
-            get { return _offset; }
-        }
-
-        public Line(string text, int offset)
-        {
-            _text = text;
-            _offset = offset;
-        }
-
-        public override string ToString()
-        {
-            return _text;
-        }
-    }
+    private record struct Line(string Text, int Offset);
 }

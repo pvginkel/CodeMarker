@@ -98,4 +98,31 @@ public static class ImageFactory
             return CreateSvgImage(stream);
         return CreateBitmapImage(stream);
     }
+
+    public static ImageSource RenderWithOverlays(
+        int resolution,
+        int dpi,
+        ImageSource image,
+        params ImageSource[] overlays
+    )
+    {
+        var vis = new DrawingVisual();
+
+        using (var dc = vis.RenderOpen())
+        {
+            dc.DrawImage(image, new Rect(0, 0, resolution, resolution));
+
+            foreach (var overlay in overlays)
+            {
+                dc.DrawImage(overlay, new Rect(0, 0, resolution, resolution));
+            }
+
+            dc.Close();
+        }
+
+        var rtb = new RenderTargetBitmap(resolution, resolution, dpi, dpi, PixelFormats.Pbgra32);
+        rtb.Render(vis);
+
+        return BitmapFrame.Create(rtb);
+    }
 }
