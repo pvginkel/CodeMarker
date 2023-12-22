@@ -3,8 +3,10 @@ using System.Runtime.CompilerServices;
 
 namespace CodeMarker;
 
-internal record Node(string Name)
+internal record Node(string Name) : INotifyPropertyChanged
 {
+    public FolderNode? Parent { get; set; }
+
     private ImageSource? _icon;
 
     public ImageSource? Icon
@@ -27,6 +29,6 @@ internal record Node(string Name)
     }
 }
 
-internal record FolderNode(string Name, List<Node> Children) : Node(Name);
+internal record FolderNode(string Name, ImmutableArray<Node> Children) : Node(Name);
 
 internal record FileNode(string Name, CodeMarkings Markings) : Node(Name);

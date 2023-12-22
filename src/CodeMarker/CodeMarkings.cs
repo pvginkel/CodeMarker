@@ -40,7 +40,8 @@ internal class CodeMarkings
     public Encoding Encoding { get; }
     public string LineTermination { get; }
     public string Text { get; }
-    public MarkColor[] MarkColors { get; private set; } = null!;
+    public ImmutableArray<MarkColor> MarkColors { get; private set; } =
+        ImmutableArray<MarkColor>.Empty;
 
     public int FileLineCount => _fileLines.Length;
 
@@ -67,14 +68,20 @@ internal class CodeMarkings
         UpdatePrevalentColor();
     }
 
-    public void UpdatePrevalentColor()
+    public ImmutableArray<MarkColor> UpdatePrevalentColor()
     {
-        var colors = LineColors.Where(p => p != null).Cast<MarkColor>().Distinct().ToArray();
+        var colors = LineColors
+            .Where(p => p != null)
+            .Cast<MarkColor>()
+            .Distinct()
+            .ToImmutableArray();
 
         if (colors.Length == 0)
             MarkColors = [MarkColor.Green];
         else
             MarkColors = colors;
+
+        return MarkColors;
     }
 
     public static CodeMarkings? FromProjectItem(string fileName)

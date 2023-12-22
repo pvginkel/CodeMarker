@@ -50,14 +50,14 @@
                 </StackPanel>
             </Button>
             <Separator />
-            <Button x:Name="_markRed">
-                <Image x:Name="_markRedImage"/>
+            <Button x:Name="_markGreen" Click="_markGreen_Click">
+                <Image x:Name="_markGreenImage"/>
             </Button>
-            <Button x:Name="_markYellow">
+            <Button x:Name="_markYellow" Click="_markYellow_Click">
                 <Image x:Name="_markYellowImage"/>
             </Button>
-            <Button x:Name="_markGreen">
-                <Image x:Name="_markGreenImage"/>
+            <Button x:Name="_markRed" Click="_markRed_Click">
+                <Image x:Name="_markRedImage"/>
             </Button>
         </ToolBar>
 
@@ -69,7 +69,8 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <TreeView x:Name="_files">
+            <TreeView x:Name="_files"
+                      SelectedItemChanged="_files_SelectedItemChanged">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate ItemsSource="{Binding Children}">
                         <StackPanel Orientation="Horizontal">
@@ -80,17 +81,20 @@
                 </TreeView.ItemTemplate>
             </TreeView>
             <GridSplitter
-                Grid.Column="1"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Stretch"
                 ShowsPreview="True"
-                Width="5" />
+                Width="5" 
+                Grid.Column="1"
+                />
             <avalonEdit:TextEditor
-                Grid.Column="2"
                 Name="_editor"
-                FontFamily="Consolas"
+                FontFamily="Cascadia Mono"
                 SyntaxHighlighting="C#"
-                FontSize="10pt" />
+                FontSize="10pt"
+                Grid.Column="2"
+                PreviewKeyDown="_editor_PreviewKeyDown"
+                />
         </Grid>
     </Grid>
 </support:BaseWindow>

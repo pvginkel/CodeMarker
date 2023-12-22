@@ -3,19 +3,19 @@
 internal class MarkColor
 {
     public static readonly MarkColor Red = new MarkColor(
-        Color.FromRgb(255, 200, 200),
+        Color.FromRgb(255, 85, 85),
         "RED",
         Images.MarkRed,
         3
     );
     public static readonly MarkColor Yellow = new MarkColor(
-        Color.FromRgb(255, 233, 127),
+        Color.FromRgb(255, 255, 85),
         "YELLOW",
         Images.MarkYellow,
         2
     );
     public static readonly MarkColor Green = new MarkColor(
-        Color.FromRgb(200, 255, 200),
+        Color.FromRgb(85, 255, 85),
         "GREEN",
         Images.MarkGreen,
         1
