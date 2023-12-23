@@ -31,9 +31,6 @@ internal class CodeMarkings
         return result;
     }
 
-    private Offset[] _fileLines;
-    private Offset[] _bufferLines;
-
     public string FileName { get; }
     public MarkColor?[] LineColors { get; set; }
     public string? Comments { get; set; }
@@ -43,17 +40,13 @@ internal class CodeMarkings
     public ImmutableArray<MarkColor> MarkColors { get; private set; } =
         ImmutableArray<MarkColor>.Empty;
 
-    public int FileLineCount => _fileLines.Length;
-
     private CodeMarkings(
         string fileName,
         MarkColor?[] lineColors,
         string? comments,
         Encoding encoding,
         string lineTermination,
-        string text,
-        Offset[] fileLines,
-        Offset[] bufferLines
+        string text
     )
     {
         FileName = fileName;
@@ -62,8 +55,6 @@ internal class CodeMarkings
         Encoding = encoding;
         LineTermination = lineTermination;
         Text = text;
-        _fileLines = fileLines;
-        _bufferLines = bufferLines;
 
         UpdatePrevalentColor();
     }
@@ -97,66 +88,44 @@ internal class CodeMarkings
 
         stream.Position = 0;
 
-        var lines = GetLines(stream, encoding, lineTermination);
+        var lines = GetLines(stream, encoding);
         var textLines = new List<string>();
         var commentLines = new List<string>();
         MarkColor? nextColor = null;
         bool inComments = false;
         var lineColors = new List<MarkColor?>();
 
-        var bufferLines = new List<Offset>();
-        var fileLines = new List<Offset>();
-
-        int fileLine = 0;
-        int bufferLine = -1;
-        int bufferOffset = 0;
-
         foreach (var line in lines)
         {
             if (inComments)
             {
-                commentLines.Add(line.Text);
-
-                fileLines.Add(new Offset(bufferLine, bufferOffset));
+                commentLines.Add(line);
             }
-            else if (line.Text.StartsWith(LineMarking))
+            else if (line.StartsWith(LineMarking))
             {
-                string marking = line.Text.Substring(LineMarking.Length);
+                string marking = line.Substring(LineMarking.Length);
 
                 if (marking == "COMMENTS")
                 {
                     inComments = true;
-
-                    fileLines.Add(new Offset(bufferLine, bufferOffset));
                 }
                 else
                 {
                     nextColor = MarkColor.GetColor(marking);
 
                     Debug.Assert(nextColor != null);
-
-                    fileLines.Add(new Offset(bufferLine + 1, bufferOffset));
                 }
             }
             else
             {
-                if (string.IsNullOrWhiteSpace(line.Text))
+                if (string.IsNullOrWhiteSpace(line))
                     lineColors.Add(null);
                 else
                     lineColors.Add(nextColor ?? MarkColor.Red);
 
-                bufferLine++;
-
                 nextColor = null;
-                textLines.Add(line.Text);
-
-                bufferLines.Add(new Offset(fileLine, line.Offset));
-                fileLines.Add(new Offset(bufferLine, bufferOffset));
-
-                bufferOffset += line.Text.Length + Environment.NewLine.Length;
+                textLines.Add(line);
             }
-
-            fileLine++;
         }
 
         string? comments = null;
@@ -172,125 +141,52 @@ internal class CodeMarkings
             comments,
             encoding,
             lineTermination,
-            text,
-            fileLines.ToArray(),
-            bufferLines.ToArray()
+            text
         );
     }
 
     public void Save()
     {
-        var fileLines = new List<Offset>();
-        var bufferLines = new List<Offset>();
-        int fileLine = 0;
-        int bufferLine = -1;
-        int bufferOffset = 0;
+        using var stream = File.Create(FileName);
+        using var writer = new StreamWriter(stream, Encoding);
 
-        using (var stream = File.Create(FileName))
-        using (var writer = new StreamWriter(stream, Encoding))
+        string[] lines = Text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+
+        for (int i = 0; i < lines.Length; i++)
         {
-            writer.Flush();
+            var color = LineColors[i];
 
-            int initialFileOffset = (int)stream.Position;
-
-            string[] lines = Text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                var color = LineColors[i];
-
-                if (color != null && color != MarkColor.Red)
-                {
-                    writer.Write(LineMarking);
-                    writer.Write(color.Name);
-                    writer.Write(LineTermination);
-
-                    fileLines.Add(new Offset(bufferLine, bufferOffset));
-                    fileLine++;
-                }
-
-                writer.Flush();
-
-                int fileOffset = (int)stream.Position - initialFileOffset;
-
-                writer.Write(lines[i]);
-                writer.Write(LineTermination);
-
-                bufferLines.Add(new Offset(fileLine, fileOffset));
-                fileLine++;
-                bufferLine++;
-                fileLines.Add(new Offset(bufferLine, bufferOffset));
-
-                bufferOffset += lines[i].Length + Environment.NewLine.Length;
-            }
-
-            if (!String.IsNullOrEmpty(Comments))
+            if (color != null && color != MarkColor.Red)
             {
                 writer.Write(LineMarking);
-                writer.Write("COMMENTS");
+                writer.Write(color.Name);
                 writer.Write(LineTermination);
-
-                fileLines.Add(new Offset(bufferLine, bufferOffset));
-
-                foreach (
-                    string line in Comments.Split(
-                        new[] { Environment.NewLine },
-                        StringSplitOptions.None
-                    )
-                )
-                {
-                    writer.Write(line);
-                    writer.Write(LineTermination);
-
-                    fileLines.Add(new Offset(bufferLine, bufferOffset));
-                }
             }
+
+            writer.Write(lines[i]);
+            writer.Write(LineTermination);
         }
 
-        _fileLines = fileLines.ToArray();
-        _bufferLines = bufferLines.ToArray();
-    }
-
-    public int LineToFile(int line)
-    {
-        return _bufferLines[line].Line;
-    }
-
-    public int LineFromFile(int line)
-    {
-        return _fileLines[line].Line;
-    }
-
-    public int PositionToFile(int position)
-    {
-        return TransformPosition(_fileLines, _bufferLines, position);
-    }
-
-    public int PositionFromFile(int position)
-    {
-        return TransformPosition(_bufferLines, _fileLines, position);
-    }
-
-    private int TransformPosition(Offset[] source, Offset[] target, int position)
-    {
-        if (source.Length == 0 || position < source[0].Index)
-            return position;
-
-        int index = source.Length - 1;
-
-        for (int i = 0; i < source.Length - 1; i++)
+        if (!string.IsNullOrEmpty(Comments))
         {
-            if (source[i + 1].Index > position)
+            writer.Write(LineMarking);
+            writer.Write("COMMENTS");
+            writer.Write(LineTermination);
+
+            foreach (
+                string line in Comments.Split(
+                    new[] { Environment.NewLine },
+                    StringSplitOptions.None
+                )
+            )
             {
-                index = i;
-                break;
+                writer.Write(line);
+                writer.Write(LineTermination);
             }
         }
-
-        return target[source[index].Line].Index + (position - source[index].Index);
     }
 
-    private static List<Line> GetLines(Stream stream, Encoding encoding, string lineEnding)
+    private static List<string> GetLines(Stream stream, Encoding encoding)
     {
         string content;
 
@@ -299,7 +195,7 @@ internal class CodeMarkings
             content = reader.ReadToEnd();
         }
 
-        var result = new List<Line>();
+        var result = new List<string>();
 
         int offset = 0;
 
@@ -326,7 +222,7 @@ internal class CodeMarkings
 
             if (lineEnd)
             {
-                result.Add(new Line(content.Substring(offset, i - offset), offset));
+                result.Add(content.Substring(offset, i - offset));
 
                 i += endLength - 1;
                 offset = i + 1;
@@ -334,7 +230,7 @@ internal class CodeMarkings
         }
 
         if (offset != content.Length)
-            result.Add(new Line(content.Substring(offset), offset));
+            result.Add(content.Substring(offset));
 
         return result;
     }
@@ -447,8 +343,4 @@ internal class CodeMarkings
 
         return isBinary;
     }
-
-    private record struct Offset(int Line, int Index);
-
-    private record struct Line(string Text, int Offset);
 }
