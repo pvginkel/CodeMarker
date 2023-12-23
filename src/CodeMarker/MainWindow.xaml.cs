@@ -166,7 +166,7 @@ internal partial class MainWindow
     {
         _file = e.NewValue as FileNode;
 
-        _editor.TextArea.TextView.LineTransformers.Clear();
+        _editor.TextArea.TextView.LineTransformers.RemoveByType<CodeMarkingsColorizer>();
         _editor.Text = null;
 
         if (_file != null)
