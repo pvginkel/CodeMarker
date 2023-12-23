@@ -26,6 +26,7 @@ internal class MarkColor
     public static readonly ImageSource RedYellowOverlay = Images.OverlayRedYellow;
     public static readonly ImageSource RedGreenOverlay = Images.OverlayRedGreen;
     public static readonly ImageSource YellowGreenOverlay = Images.OverlayYellowGreen;
+    public static readonly ImmutableArray<MarkColor> AllColors = [Red, Yellow, Green];
 
     public static ImageSource? GetOverlay(IEnumerable<MarkColor> colors)
     {

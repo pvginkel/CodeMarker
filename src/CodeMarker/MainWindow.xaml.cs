@@ -128,10 +128,12 @@ internal partial class MainWindow
                 if (codeMarkings == null)
                     continue;
 
+                var markColors = codeMarkings.Summary.Select(p => p.Color).ToImmutableArray();
+
                 var fileNode = new FileNode(name, codeMarkings)
                 {
-                    Icon = _iconManager!.GetIcon(Path.GetExtension(name), codeMarkings.MarkColors),
-                    MarkColors = codeMarkings.MarkColors.ToImmutableArray()
+                    Icon = _iconManager!.GetIcon(Path.GetExtension(name), markColors),
+                    MarkColors = markColors
                 };
 
                 nodes.Add(fileNode);
@@ -234,7 +236,9 @@ internal partial class MainWindow
 
         _file.Markings.Save();
 
-        _file.MarkColors = _file.Markings.UpdatePrevalentColor();
+        _file.Markings.UpdateSummary();
+
+        _file.MarkColors = _file.Markings.Summary.Select(p => p.Color).ToImmutableArray();
         _file.Icon = _iconManager!.GetIcon(Path.GetExtension(_file.Name), _file.MarkColors);
 
         for (var node = _file.Parent; node != null; node = node.Parent)
@@ -256,10 +260,9 @@ internal partial class MainWindow
 
         foreach (var node in GetAllNodes().OfType<FileNode>())
         {
-            foreach (var color in node.Markings.LineColors)
+            foreach (var color in node.Markings.Summary)
             {
-                if (color != null)
-                    colorNumbers[color.Priority - 1]++;
+                colorNumbers[color.Color.Priority - 1] += color.Count;
             }
         }
 

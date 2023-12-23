@@ -37,8 +37,8 @@ internal class CodeMarkings
     public Encoding Encoding { get; }
     public string LineTermination { get; }
     public string Text { get; }
-    public ImmutableArray<MarkColor> MarkColors { get; private set; } =
-        ImmutableArray<MarkColor>.Empty;
+    public ImmutableArray<(MarkColor Color, int Count)> Summary { get; private set; } =
+        ImmutableArray<(MarkColor Color, int Count)>.Empty;
 
     private CodeMarkings(
         string fileName,
@@ -56,23 +56,31 @@ internal class CodeMarkings
         LineTermination = lineTermination;
         Text = text;
 
-        UpdatePrevalentColor();
+        UpdateSummary();
     }
 
-    public ImmutableArray<MarkColor> UpdatePrevalentColor()
+    public void UpdateSummary()
     {
-        var colors = LineColors
-            .Where(p => p != null)
-            .Cast<MarkColor>()
-            .Distinct()
-            .ToImmutableArray();
+        var counts = new int[3];
 
-        if (colors.Length == 0)
-            MarkColors = [MarkColor.Green];
-        else
-            MarkColors = colors;
+        foreach (var color in LineColors)
+        {
+            if (color != null)
+                counts[color.Priority - 1]++;
+        }
 
-        return MarkColors;
+        var summary = ImmutableArray.CreateBuilder<(MarkColor Color, int Count)>();
+
+        foreach (var color in MarkColor.AllColors)
+        {
+            if (counts[color.Priority - 1] > 0)
+                summary.Add((color, counts[color.Priority - 1]));
+        }
+
+        if (summary.Count == 0)
+            summary.Add((MarkColor.Green, 0));
+
+        Summary = summary.ToImmutable();
     }
 
     public static CodeMarkings? FromProjectItem(string fileName)
