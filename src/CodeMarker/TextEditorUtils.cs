@@ -1,6 +1,4 @@
-﻿using Microsoft.Win32;
-
-namespace CodeMarker;
+﻿namespace CodeMarker;
 
 internal class TextEditorUtils
 {

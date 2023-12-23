@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Concurrent;
-using System.Globalization;
-using System.Resources;
+﻿using System.Collections.Concurrent;
 using CodeMarker.Support;
 
 namespace CodeMarker;
